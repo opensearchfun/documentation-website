@@ -30,7 +30,7 @@ OpenSearch indexes have the following naming restrictions:
 - Index names can't begin with underscores (`_`) or hyphens (`-`).
 - Index names can't contain spaces, commas, or the following characters:
 
-  `:`, `"`, `*`, `+`, `/`, `\`, `|`, `?`, `#`, `>`, or `<`
+  `:`, `"`, `*`, `+`, `/`, `\\`, `|`, `?`, `#`, `>`, or `<`
 
 ## Path parameters
 
@@ -52,6 +52,33 @@ timeout | Time | How long to wait for the request to return. Default is `30s`.
 
 As part of your request, you can optionally specify [index settings]({{site.url}}{{site.baseurl}}/im-plugin/index-settings/), [mappings]({{site.url}}{{site.baseurl}}/field-types/index/), [aliases]({{site.url}}{{site.baseurl}}/opensearch/index-alias/), and [index context]({{site.url}}{{site.baseurl}}/opensearch/index-context/). 
 
+You can also specify the `ingestion_source` settings, including the new dynamic `error_strategy` setting:
+
+```json
+"settings": {
+  "index": {
+    "ingestion_source": {
+      "type": "your_ingestion_source_type",
+      "pointer": {
+        "init": {
+          "reset": "LATEST",
+          "value": ""
+        }
+      },
+      "error_strategy": "DROP"
+    }
+  }
+}
+```
+
+The `error_strategy` setting can be one of:
+
+- `DROP` - Drop records that cause errors during ingestion (default)
+- `RETRY` - Retry ingesting records that cause errors
+- `DEADLETTER` - Send records that cause errors to a dead letter queue
+
+This setting can be updated dynamically after index creation.
+
 ## Example request
 
 ```json
@@ -60,7 +87,16 @@ PUT /sample-index1
   "settings": {
     "index": {
       "number_of_shards": 2,
-      "number_of_replicas": 1
+      "number_of_replicas": 1,
+      "ingestion_source": {
+        "type": "kafka",
+        "pointer": {
+          "init": {
+            "reset": "EARLIEST"
+          }
+        },
+        "error_strategy": "DEADLETTER"
+      }
     }
   },
   "mappings": {
