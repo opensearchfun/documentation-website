@@ -6,8 +6,8 @@ nav_exclude: true
 has_toc: true
 permalink: /ingest-pipelines/
 redirect_from:
-   - /api-reference/ingest-apis/ingest-pipelines/
-   - /ingest-pipelines/index/
+  - /api-reference/ingest-apis/ingest-pipelines/
+  - /ingest-pipelines/index/
 ---
 
 # Ingest pipelines
@@ -51,6 +51,45 @@ Field | Required | Type | Description
 :--- | :--- | :--- | :---
 `processors` | Required | Array of processor objects | A component that performs a specific data processing task as the data is being ingested into OpenSearch.
 `description` | Optional | String | A description of the ingest pipeline. 
+
+## Error handling strategies
+
+OpenSearch ingest pipelines support two error handling strategies when encountering errors during ingestion:
+
+1. **DROP**: This strategy ignores the error and continues processing subsequent records. This is the default behavior.
+
+2. **BLOCK**: This strategy stops processing when an error is encountered, preventing any further ingestion until the error is resolved.
+
+These strategies can be configured at two stages:
+
+- **POLLING**: Applies to errors encountered while polling records from the ingestion source.
+- **PROCESSING**: Applies to errors encountered during the processing of polled records.
+
+To configure the error handling strategy, use the following settings:
+
+```yaml
+opensearch.ingestion.error_strategy: DROP  # or BLOCK
+```
+
+You can also specify different strategies for polling and processing stages:
+
+```yaml
+opensearch.ingestion.polling.error_strategy: DROP
+opensearch.ingestion.processing.error_strategy: BLOCK
+```
+
+The error handling strategy can be dynamically updated using the cluster settings API:
+
+```json
+PUT _cluster/settings
+{
+  "persistent": {
+    "opensearch.ingestion.error_strategy": "BLOCK"
+  }
+}
+```
+
+When using the BLOCK strategy, it's important to monitor your ingestion process closely and have a plan for addressing errors promptly to prevent prolonged interruptions to data ingestion.
 
 ## Next steps
 
