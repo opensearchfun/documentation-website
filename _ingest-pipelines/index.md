@@ -2,62 +2,78 @@
 layout: default
 title: Ingest pipelines
 nav_order: 5
-nav_exclude: true
+has_children: false
 has_toc: true
+parent: OpenSearch
+nav_exclude: true
 permalink: /ingest-pipelines/
 redirect_from:
-   - /api-reference/ingest-apis/ingest-pipelines/
-   - /ingest-pipelines/index/
+  - /api-reference/ingest-apis/ingest-pipelines/
+  - /ingest-pipelines/index/
 ---
 
 # Ingest pipelines
 
-An _ingest pipeline_ is a sequence of _processors_ that are applied to documents as they are ingested into an index. Each [processor]({{site.url}}{{site.baseurl}}/ingest-pipelines/processors/index-processors/) in a pipeline performs a specific task, such as filtering, transforming, or enriching data. 
+Ingest pipelines allow you to pre-process documents before indexing. You can use ingest pipelines to perform tasks such as removing fields, extracting values from fields, and enriching data. 
 
-Processors are customizable tasks that run in a sequential order as they appear in the request body. This order is important, as each processor depends on the output of the previous processor. The modified documents appear in your index after the processors are applied.
+This page covers how to create and manage ingest pipelines, including new error handling strategies introduced in recent versions.
 
-## OpenSearch ingest pipelines compared to Data Prepper
+## Creating an ingest pipeline
 
-OpenSeach ingest pipelines run within the OpenSearch cluster, whereas [Data Prepper]({{site.url}}{{site.baseurl}}/data-prepper/) is an external component that runs on the OpenSearch cluster. 
-
-OpenSearch ingest pipelines perform actions on indexes and are preferred for use cases involving pre-processing simple datasets, [machine learning (ML) processors]({{site.url}}{{site.baseurl}}/ingest-pipelines/processors/sparse-encoding/), and [vector embedding processors]({{site.url}}{{site.baseurl}}/ingest-pipelines/processors/text-image-embedding/). OpenSearch ingest pipelines are recommended for simple data pre-processing and small datasets. 
-
-Data Prepper is recommended for any data processing tasks it supports, particularly when dealing with large datasets and complex data pre-processing requirements. It streamlines the process of transferring and fetching large datasets while providing robust capabilities for intricate data preparation and transformation operations. Refer to the [Data Prepper]({{site.url}}{{site.baseurl}}/data-prepper/) documentation for more information.      
-
-OpenSearch ingest pipelines can only be managed using [Ingest API operations]({{site.url}}{{site.baseurl}}/api-reference/ingest-apis/index/).
-{: .note}
-
-## Prerequisites 
-
-The following are prerequisites for using OpenSearch ingest pipelines:
-
-- When using ingestion in a production environment, your cluster should contain at least one node with the node roles permission set to `ingest`. For information about setting up node roles within a cluster, see [Cluster Formation]({{site.url}}{{site.baseurl}}/opensearch/cluster/).
-- If the OpenSearch Security plugin is enabled, you must have the `cluster_manage_pipelines` permission to manage ingest pipelines.
-
-## Define a pipeline
-
-A _pipeline definition_ describes the sequence of an ingest pipeline and can be written in JSON format. An ingest pipeline consists of the following:
+To create an ingest pipeline, use the [Create Pipeline API]({{site.url}}{{site.baseurl}}/api-reference/ingest-apis/create-ingest/):
 
 ```json
+PUT _ingest/pipeline/my-pipeline
 {
-    "description" : "..."
-    "processors" : [...]
+  "description" : "My ingest pipeline",
+  "processors" : [
+    {
+      "set" : {
+        "field": "processed_date",
+        "value": "{{_ingest.timestamp}}"
+      }
+    }
+  ]
 }
 ```
 
-#### Request body fields
+## Error handling strategies
 
-Field | Required | Type | Description
-:--- | :--- | :--- | :---
-`processors` | Required | Array of processor objects | A component that performs a specific data processing task as the data is being ingested into OpenSearch.
-`description` | Optional | String | A description of the ingest pipeline. 
+As of version X.X, ingest pipelines support configurable error handling strategies. These strategies define how errors are handled during document processing.
 
-## Next steps
+You can set the error handling strategy when creating or updating a pipeline:
 
-Learn how to:
+```json
+PUT _ingest/pipeline/my-pipeline
+{
+  "description": "Pipeline with error strategy",
+  "processors": [...],
+  "error_strategy": "DROP"
+}
+```
 
-- [Create a pipeline]({{site.url}}{{site.baseurl}}/ingest-pipelines/create-ingest/).
-- [Test a pipeline]({{site.url}}{{site.baseurl}}/ingest-pipelines/simulate-ingest/).
-- [Retrieve information about a pipeline]({{site.url}}{{site.baseurl}}/ingest-pipelines/get-ingest/).
-- [Delete a pipeline]({{site.url}}{{site.baseurl}}/ingest-pipelines/delete-ingest/). 
-- [Use ingest processors in OpenSearch]({{site.url}}{{site.baseurl}}/ingest-pipelines/processors/index-processors/)
+The available error strategies are:
+
+- `DROP`: Silently drop documents that encounter errors during processing. This is the default behavior.
+- `BLOCK`: Block indexing and return an error when a document fails processing.
+
+### Handling errors programmatically
+
+For more advanced error handling, you can implement custom logic using the `IngestionErrorStrategy` interface:
+
+```java
+public interface IngestionErrorStrategy {
+    void handleError(Throwable e, ErrorStage stage);
+    boolean shouldIgnoreError(Throwable e, ErrorStage stage);
+}
+```
+
+This allows you to define custom behavior for different types of errors or processing stages.
+
+## Managing pipelines
+
+- To retrieve an existing pipeline: `GET _ingest/pipeline/my-pipeline`
+- To delete a pipeline: `DELETE _ingest/pipeline/my-pipeline`
+- To update a pipeline, simply create a new one with the same name
+
+For more information on ingest pipeline APIs, see the [Ingest APIs documentation]({{site.url}}{{site.baseurl}}/api-reference/ingest-apis/).
