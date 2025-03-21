@@ -9,17 +9,17 @@ permalink: /search-plugins/
 redirect_from:
   - /search-plugins/index/
 keyword:
-  - heading: "Keyword (BM25) search"
-    description: "Find exact and close matches using traditional text search"
-    link: "/search-plugins/keyword-search/"
+  - heading: Keyword (BM25) search
+    description: Find exact and close matches using traditional text search
+    link: /search-plugins/keyword-search/
 vector:
-  - heading: "Vector search"
-    description: "Search by similarity using dense or sparse vector embeddings"
-    link: "/vector-search/"
+  - heading: Vector search
+    description: Search by similarity using dense or sparse vector embeddings
+    link: /vector-search/
 ai:
-  - heading: "AI search"
-    description: "Build intelligent search applications using AI models"
-    link: "/vector-search/ai-search/"
+  - heading: AI search
+    description: Build intelligent search applications using AI models
+    link: /vector-search/ai-search/
 ---
 
 # Search features
@@ -56,7 +56,7 @@ In OpenSearch, you can use the following query languages to search your data:
 
 - [Query string query language]({{site.url}}{{site.baseurl}}/query-dsl/full-text/query-string/): A scaled-down query language that you can use in a query parameter of a search request or in OpenSearch Dashboards.
 
-- [SQL]({{site.url}}{{site.baseurl}}/search-plugins/sql/sql/index/): A traditional query language that bridges the gap between traditional relational database concepts and the flexibility of OpenSearch’s document-oriented data storage.
+- [SQL]({{site.url}}{{site.baseurl}}/search-plugins/sql/sql/index/): A traditional query language that bridges the gap between traditional relational database concepts and the flexibility of OpenSearch's document-oriented data storage.
 
 - [Piped Processing Language (PPL)]({{site.url}}{{site.baseurl}}/search-plugins/sql/ppl/index/): The primary language used with observability in OpenSearch. PPL uses a pipe syntax that chains commands into a query.
 
@@ -94,3 +94,40 @@ OpenSearch supports the following commonly used operations on search results:
 ## Search pipelines
 
 You can process search queries and search results with [search pipelines]({{site.url}}{{site.baseurl}}/search-plugins/search-pipelines/index/).
+
+## Ingestion error strategy
+
+OpenSearch supports dynamic configuration of the ingestion error strategy for ingestion sources. This allows you to update the error handling behavior for ingestion pipelines without restarting the cluster.
+
+To configure the ingestion error strategy dynamically:
+
+1. Use the `IndexMetadata.INGESTION_SOURCE_ERROR_STRATEGY_SETTING` setting to specify the desired error strategy.
+
+2. The `IngestionEngine` will automatically update the error handling strategy in the stream poller when this setting is changed.
+
+3. Supported error strategies include:
+   - DROP: Drop problematic events
+   - RETRY: Retry ingesting events after a delay
+   - CONTINUE: Continue processing and log errors
+
+4. Example configuration:
+
+   ```yaml
+   PUT my-index
+   {
+     "settings": {
+       "index.ingestion_source.error_strategy": "RETRY"  
+     }
+   }
+   ```
+
+5. The error strategy can be updated dynamically without downtime:
+
+   ```yaml
+   PUT my-index/_settings
+   {
+     "index.ingestion_source.error_strategy": "DROP"
+   }
+   ```
+
+This allows flexible runtime configuration of error handling for ingestion pipelines to meet changing requirements.
