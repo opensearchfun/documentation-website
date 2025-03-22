@@ -5,80 +5,129 @@ nav_order: 30
 has_children: true
 has_toc: false
 redirect_from:
-   - /api-reference/ingest-apis/ingest-processors/
+  - /api-reference/ingest-apis/ingest-processors/
 ---
-
 # Ingest processors
 
-Ingest processors are a core component of [ingest pipelines]({{site.url}}{{site.baseurl}}/ingest-pipelines/index/). They preprocess documents before indexing. For example, you can remove fields, extract values from text, convert data formats, or append additional information.
+Ingest processors are used to pre-process documents before indexing. A processor transforms and enriches the document by manipulating or adding fields.
 
-OpenSearch provides a standard [set of ingest processors](#supported-processors) within your OpenSearch installation. For a list of processors available in OpenSearch, use the [Nodes Info]({{site.url}}{{site.baseurl}}/api-reference/nodes-apis/nodes-info/) API operation:
-
-```json
-GET /_nodes/ingest?filter_path=nodes.*.ingest.processors
-```
-{% include copy-curl.html %}
-
-To set up and deploy ingest processors, make sure you have the necessary permissions and access rights. See [Security plugin REST API]({{site.url}}{{site.baseurl}}/security/access-control/api/) to learn more.
-{:.note}
+Processors are configured as part of an [ingest pipeline]({{site.url}}{{site.baseurl}}/api-reference/ingest-apis/create-update-ingest/). Each processor runs in sequence as defined in the pipeline, with changes made by one processor visible to subsequent processors.
 
 ## Supported processors
 
-Processor types and their required or optional parameters vary depending on your specific use case. OpenSearch supports the following ingest processors. For tutorials on using these processors in an OpenSearch pipeline, go to each processor's respective documentation. 
+OpenSearch supports the following processors:
 
-Processor type | Description
-:--- | :--- 
-`append` | Adds one or more values to a field in a document. 
-`bytes` | Converts a human-readable byte value to its value in bytes.
-`community_id` | Generates a community ID flow hash algorithm for the network flow tuples.
-`convert` | Changes the data type of a field in a document.
-`copy` | Copies an entire object in an existing field to another field.
-`csv` | Extracts CSVs and stores them as individual fields in a document. 
-`date` | Parses dates from fields and then uses the date or timestamp as the timestamp for a document.
-`date_index_name` | Indexes documents into time-based indexes based on a date or timestamp field in a document. 
-`dissect` | Extracts structured fields from a text field using a defined pattern. 
-`dot_expander` | Expands a field with dots into an object field. 
-`drop` |Drops a document without indexing it or raising any errors.
-`fail` | Raises an exception and stops the execution of a pipeline. 
-`fingerprint` | Generates a hash value for either certain specified fields or all fields in a document. 
-`foreach` | Allows for another processor to be applied to each element of an array or an object field in a document.
-`geoip` | Adds information about the geographical location of an IP address.
-`geojson-feature` | Indexes GeoJSON data into a geospatial field.
-`grok` | Parses and structures unstructured data using pattern matching. 
-`gsub` | Replaces or deletes substrings within a string field of a document. 
-`html_strip` | Removes HTML tags from a text field and returns the plain text content. 
-`ip2geo` | Adds information about the geographical location of an IPv4 or IPv6 address.
-`join` | Concatenates each element of an array into a single string using a separator character between each element. 
-`json` | Converts a JSON string into a structured JSON object. 
-`kv` | Automatically parses key-value pairs in a field.
-`lowercase` | Converts text in a specific field to lowercase letters.
-`pipeline` | Runs an inner pipeline.
-`remove` | Removes fields from a document.
-`remove_by_pattern` | Removes fields from a document by field pattern.
-`rename` | Renames an existing field.
-`script` | Runs an inline or stored script on incoming documents. 
-`set` | Sets the value of a field to a specified value.
-`sort` | Sorts the elements of an array in ascending or descending order.
-`sparse_encoding` | Generates a sparse vector/token and weights from text fields for neural sparse search using sparse retrieval. 
-`split` | Splits a field into an array using a separator character.
-`text_chunking` | Splits long documents into smaller chunks.
-`text_embedding` | Generates vector embeddings from text fields for semantic search.
-`text_image_embedding` | Generates combined vector embeddings from text and image fields for multimodal neural search.
-`trim` | Removes leading and trailing white space from a string field.
-`uppercase` | Converts text in a specific field to uppercase letters.
-`urldecode` | Decodes a string from URL-encoded format.
-`user_agent` | Extracts details from the user agent sent by a browser to its web requests. 
+- [append]({{site.url}}{{site.baseurl}}/ingest-pipelines/processors/append/)
+- [bytes]({{site.url}}{{site.baseurl}}/ingest-pipelines/processors/bytes/)
+- [convert]({{site.url}}{{site.baseurl}}/ingest-pipelines/processors/convert/)
+- [csv]({{site.url}}{{site.baseurl}}/ingest-pipelines/processors/csv/)
+- [date]({{site.url}}{{site.baseurl}}/ingest-pipelines/processors/date/)
+- [dissect]({{site.url}}{{site.baseurl}}/ingest-pipelines/processors/dissect/)
+- [dot expander]({{site.url}}{{site.baseurl}}/ingest-pipelines/processors/dot-expander/)
+- [drop]({{site.url}}{{site.baseurl}}/ingest-pipelines/processors/drop/)
+- [fail]({{site.url}}{{site.baseurl}}/ingest-pipelines/processors/fail/)
+- [foreach]({{site.url}}{{site.baseurl}}/ingest-pipelines/processors/foreach/)
+- [grok]({{site.url}}{{site.baseurl}}/ingest-pipelines/processors/grok/)
+- [gsub]({{site.url}}{{site.baseurl}}/ingest-pipelines/processors/gsub/)
+- [html strip]({{site.url}}{{site.baseurl}}/ingest-pipelines/processors/html-strip/)
+- [json]({{site.url}}{{site.baseurl}}/ingest-pipelines/processors/json/)
+- [kv]({{site.url}}{{site.baseurl}}/ingest-pipelines/processors/kv/)
+- [lowercase]({{site.url}}{{site.baseurl}}/ingest-pipelines/processors/lowercase/)
+- [ml inference]({{site.url}}{{site.baseurl}}/ingest-pipelines/processors/ml-inference/)
+- [pipeline]({{site.url}}{{site.baseurl}}/ingest-pipelines/processors/pipeline/)
+- [remove]({{site.url}}{{site.baseurl}}/ingest-pipelines/processors/remove/)
+- [rename]({{site.url}}{{site.baseurl}}/ingest-pipelines/processors/rename/)
+- [script]({{site.url}}{{site.baseurl}}/ingest-pipelines/processors/script/)
+- [set]({{site.url}}{{site.baseurl}}/ingest-pipelines/processors/set/)
+- [sort]({{site.url}}{{site.baseurl}}/ingest-pipelines/processors/sort/)
+- [split]({{site.url}}{{site.baseurl}}/ingest-pipelines/processors/split/)
+- [trim]({{site.url}}{{site.baseurl}}/ingest-pipelines/processors/trim/)
+- [uppercase]({{site.url}}{{site.baseurl}}/ingest-pipelines/processors/uppercase/)
+- [urldecode]({{site.url}}{{site.baseurl}}/ingest-pipelines/processors/urldecode/)
+- [user_agent]({{site.url}}{{site.baseurl}}/ingest-pipelines/processors/user-agent/)
 
 ## Processor limit settings
 
-You can limit the number of ingest processors using the cluster setting `cluster.ingest.max_number_processors`. The total number of processors includes both the number of processors and the number of [`on_failure`]({{site.url}}{{site.baseurl}}/ingest-pipelines/pipeline-failures/) processors.
+You can limit the number of processors that can be used in a single ingest pipeline by configuring the `processor_limit` setting:
 
-The default value for `cluster.ingest.max_number_processors` is `Integer.MAX_VALUE`. Adding a higher number of processors than the value configured in `cluster.ingest.max_number_processors` will throw an `IllegalStateException`.
+```json
+PUT /_cluster/settings
+{
+  "persistent": {
+    "ingest.processor_limit": 100
+  }
+}
+```
+
+The default limit is 50 processors per pipeline.
 
 ## Batch-enabled processors
 
-Some processors support batch ingestion---they can process multiple documents at the same time as a batch. These batch-enabled processors usually provide better performance when using batch processing. For batch processing, use the [Bulk API]({{site.url}}{{site.baseurl}}/api-reference/document-apis/bulk/) and provide a `batch_size` parameter. All batch-enabled processors have a batch mode and a single-document mode. When you ingest documents using the `PUT` method, the processor functions in single-document mode and processes documents in series. Currently, only the `text_embedding` and `sparse_encoding` processors are batch enabled. All other processors process documents one at a time.
+Some processors support batch processing, which can significantly improve performance when processing large volumes of documents. These processors implement the `BatchProcessor` interface:
+
+- `append`
+- `convert`
+- `date`
+- `drop`
+- `foreach`
+- `json`
+- `kv`
+- `lowercase`
+- `remove`
+- `rename`
+- `script`
+- `set`
+- `split`
+- `trim`
+- `uppercase`
+
+Batch-enabled processors can process multiple documents in a single execution, reducing overhead and improving throughput.
 
 ## Selectively enabling processors
 
-Processors defined by the [ingest-common module](https://github.com/opensearch-project/OpenSearch/blob/2.x/modules/ingest-common/src/main/java/org/opensearch/ingest/common/IngestCommonPlugin.java) can be selectively enabled by providing the `ingest-common.processors.allowed` cluster setting. If not provided, then all processors are enabled by default. Specifying an empty list disables all processors. If the setting is changed to remove previously enabled processors, then any pipeline using a disabled processor will fail after node restart when the new setting takes effect.
+You can selectively enable or disable ingest processors using the `ingest.processor.<processor_type>.enabled` setting. For example, to disable the `kv` processor:
+
+```json
+PUT /_cluster/settings
+{
+  "persistent": {
+    "ingest.processor.kv.enabled": false
+  }
+}
+```
+
+This setting can be useful for security purposes or to reduce resource usage by disabling unused processors.
+
+## New dynamic error handling strategy for ingestion sources
+
+OpenSearch now supports a dynamic error handling strategy for ingestion sources. This feature allows you to configure how OpenSearch handles errors during the ingestion process, providing more flexibility and control over error management.
+
+To configure the error handling strategy, use the following cluster setting:
+
+```json
+PUT /_cluster/settings
+{
+  "persistent": {
+    "ingestion.error_strategy": "DROP"
+  }
+}
+```
+
+The available options for `ingestion.error_strategy` are:
+
+- `DROP`: Drops the document that caused the error and continues processing the rest of the batch.
+- `HALT`: Stops processing the entire batch when an error is encountered.
+- `RETRY`: Attempts to retry processing the document that caused the error.
+
+You can also configure the error handling strategy at the index level:
+
+```json
+PUT /my-index
+{
+  "settings": {
+    "index.ingestion.error_strategy": "RETRY"
+  }
+}
+```
+
+This allows you to have different error handling strategies for different indexes, providing fine-grained control over error management during ingestion.
