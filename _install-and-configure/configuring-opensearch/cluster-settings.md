@@ -104,6 +104,8 @@ OpenSearch supports the following cluster-level routing and shard allocation set
 
 - `cluster.allocator.existing_shards_allocator.batch_enabled` (Static, Boolean): Enables batch allocation of unassigned shards that already exist on the disk, as opposed to allocating one shard at a time. This reduces memory and transport overhead by fetching any unassigned shard metadata in a batch call. Default is `false`.
 
+- `cluster.routing.allocation.remote_primary.ignore_throttle` (Dynamic, Boolean): When set to `true`, throttle settings are ignored when allocating remote primary shards. Default is `true`.
+
 ## Cluster-level shard, block, and task settings
 
 OpenSearch supports the following cluster-level shard, block, and task settings:

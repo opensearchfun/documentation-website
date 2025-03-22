@@ -74,7 +74,6 @@ docker run -e "OPENSEARCH_JAVA_OPTS=-Xms2g -Xmx2g" -e "OPENSEARCH_PATH_CONF=/usr
 ```
 {% include copy.html %}
 
-
 ## Updating cluster settings using the API
 
 The first step in changing a setting is to view the current settings by sending the following request:
@@ -157,3 +156,28 @@ If you are working on a client application running against an OpenSearch cluster
 - http.cors.allow-headers:X-Requested-With,X-Auth-Token,Content-Type,Content-Length,Authorization
 - http.cors.allow-credentials:true
 ```
+
+## Node roles
+
+OpenSearch uses role-based node types to determine the capabilities of each node in a cluster. The `cluster.node.roles` setting in `opensearch.yml` specifies the roles for a node. You can assign multiple roles to a node.
+
+The following node roles are available:
+
+- `cluster_manager`: Manages cluster-wide actions such as creating or deleting an index, tracking the nodes in a cluster, and deciding which shards to allocate to which nodes. 
+- `data`: Enables a node to store data and perform data-related operations such as CRUD, search, and aggregations.
+- `ingest`: Enables a node to run ingest pipelines.
+- `ml`: Enables a node to run machine learning jobs.
+- `remote_cluster_client`: Enables a node to act as a remote client.
+- `search`: Enables a node to handle search and query requests.
+
+To assign roles to a node, add the `cluster.node.roles` setting to `opensearch.yml`:
+
+```yaml
+cluster.node.roles: [data, ingest]
+```
+
+If no roles are explicitly set, OpenSearch assigns all roles to the node by default.
+
+### Compatibility with Elasticsearch OSS
+
+For backwards compatibility, OpenSearch also supports the deprecated `master` role. However, we recommend using `cluster_manager` instead. The `master` and `cluster_manager` roles cannot be assigned together to a node.

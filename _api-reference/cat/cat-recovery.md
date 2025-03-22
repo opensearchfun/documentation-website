@@ -5,7 +5,7 @@ parent: CAT API
 nav_order: 50
 has_children: false
 redirect_from:
-- /opensearch/rest-api/cat/cat-recovery/
+  - /opensearch/rest-api/cat/cat-recovery/
 ---
 
 # CAT recovery
@@ -79,3 +79,5 @@ index | shard | time | type | stage | source_host | source_node | target_host | 
 movies | 0 | 117ms | empty_store | done | n/a | n/a | 172.18.0.4 | odfe-node1 | n/a | n/a | 0 | 0 | 0.0% | 0 | 0 | 0 | 0.0% | 0 | 0 | 0 | 100.0%
 movies | 0 | 382ms | peer | done | 172.18.0.4 | odfe-node1 | 172.18.0.3 | odfe-node2 | n/a | n/a | 1 | 1 |  100.0% | 1 | 208 | 208 | 100.0% | 208 | 1 | 1 | 100.0%
 ```
+
+The response includes information about completed and ongoing shard recoveries, including the index name, shard number, recovery time, type of recovery, stage, source and target hosts/nodes, repository and snapshot details (if applicable), and statistics on files and bytes recovered.
