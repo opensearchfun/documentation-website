@@ -9,70 +9,217 @@ redirect_from:
 ---
 
 # Create index
-**Introduced 1.0**
+Introduced 1.0
 {: .label .label-purple }
 
-While you can create an index by using a document as a base, you can also create an empty index for later use.
-
-When creating an index, you can specify its mappings, settings, and aliases. 
+Use the create index API operation to add a new index to an OpenSearch cluster.
 
 ## Endpoints
 
 ```json
-PUT <index>
+PUT /<index>
 ```
 
 ## Index naming restrictions
 
-OpenSearch indexes have the following naming restrictions:
+Index names must meet the following criteria:
 
-- All letters must be lowercase.
-- Index names can't begin with underscores (`_`) or hyphens (`-`).
-- Index names can't contain spaces, commas, or the following characters:
-
-  `:`, `"`, `*`, `+`, `/`, `\`, `|`, `?`, `#`, `>`, or `<`
+- Lowercase only
+- Cannot include `\`, `/`, `*`, `?`, `"`, `<`, `>`, `|`, ` ` (space), `,`, `#`
+- Indices prior to 7.0.0 could contain `:`, but that's no longer allowed
+- Cannot start with `-`, `_`, `+`
+- Cannot be `.` or `..`
+- Cannot be longer than 255 bytes (note that it is bytes, so multi-byte characters will count towards the 255 limit faster)
 
 ## Path parameters
 
 Parameter | Data type | Description
 :--- | :--- | :---
-index | String | The index name. Must conform to the [index naming restrictions](#index-naming-restrictions). Required. 
+index | String | Name of the index to create. Required.
 
 ## Query parameters
 
-You can include the following query parameters in your request. All parameters are optional.
-
-Parameter | Type | Description
-:--- | :--- | :---
-wait_for_active_shards | String | Specifies the number of active shards that must be available before OpenSearch processes the request. Default is 1 (only the primary shard). Set to `all` or a positive integer. Values greater than 1 require replicas. For example, if you specify a value of 3, the index must have two replicas distributed across two additional nodes for the request to succeed.
-cluster_manager_timeout | Time | How long to wait for a connection to the cluster manager node. Default is `30s`.
-timeout | Time | How long to wait for the request to return. Default is `30s`.
+Parameter | Data type | Description | Default value
+:--- | :--- | :--- | :---
+wait_for_active_shards | String | The number of shard copies that must be active before the index creation returns. | 1 (just the primary shard)
+master_timeout | Time | How long to wait for a connection to the primary node. | 30 seconds
+timeout | Time | How long to wait for the index to be created. | 30 seconds
 
 ## Request body
 
-As part of your request, you can optionally specify [index settings]({{site.url}}{{site.baseurl}}/im-plugin/index-settings/), [mappings]({{site.url}}{{site.baseurl}}/field-types/index/), [aliases]({{site.url}}{{site.baseurl}}/opensearch/index-alias/), and [index context]({{site.url}}{{site.baseurl}}/opensearch/index-context/). 
-
-## Example request
-
 ```json
-PUT /sample-index1
 {
   "settings": {
     "index": {
-      "number_of_shards": 2,
-      "number_of_replicas": 1
+      "number_of_shards": 3,
+      "number_of_replicas": 2,
+      "plugins": {
+        "index_state_management": {
+          "rollover_skip": true
+        }
+      }
     }
   },
   "mappings": {
     "properties": {
-      "age": {
-        "type": "integer"
+      "field1": {
+        "type": "keyword"
+      },
+      "field2": {
+        "type": "text"
       }
     }
   },
   "aliases": {
-    "sample-alias1": {}
+    "my-alias": {}
+  },
+  "context": {
+    "name": "context1",
+    "schema": {
+      "properties": {
+        "field1": {
+          "type": "keyword"
+        }
+      }
+    }
   }
 }
 ```
+
+You can specify the following options in the request body:
+
+Field | Description
+:--- | :---
+settings | Configure the index, such as number of shards and replicas, refresh interval, etc.
+mappings | Define how documents and their fields are stored and indexed.
+aliases | Specify index aliases.
+context | Define a context for the index to be used with the Index Context feature.
+
+## Example request
+
+```json
+PUT /sample-index
+{
+  "settings": {
+    "index": {
+      "number_of_shards": 3,
+      "number_of_replicas": 2,
+      "plugins": {
+        "index_state_management": {
+          "rollover_skip": true
+        }
+      }
+    }
+  },
+  "mappings": {
+    "properties": {
+      "field1": {
+        "type": "keyword"
+      },
+      "field2": {
+        "type": "text"
+      }
+    }
+  },
+  "aliases": {
+    "my-alias": {}
+  },
+  "context": {
+    "name": "context1",
+    "schema": {
+      "properties": {
+        "field1": {
+          "type": "keyword"
+        }
+      }
+    }
+  }
+}
+```
+
 {% include copy-curl.html %}
+
+## Example response
+
+```json
+{
+  "acknowledged": true,
+  "shards_acknowledged": true,
+  "index": "sample-index"
+}
+```
+
+## Response body fields
+
+Field | Description
+:--- | :---
+acknowledged | Indicates whether the index was successfully created.
+shards_acknowledged | Indicates whether the configured number of shards were started before timing out.
+index | The name of the index that was created.
+
+If the index already exists, OpenSearch returns an error:
+
+```json
+{
+  "error": {
+    "root_cause": [
+      {
+        "type": "resource_already_exists_exception",
+        "reason": "index [sample-index/1234567890] already exists",
+        "index_uuid": "1234567890",
+        "index": "sample-index"
+      }
+    ],
+    "type": "resource_already_exists_exception",
+    "reason": "index [sample-index/1234567890] already exists",
+    "index_uuid": "1234567890",
+    "index": "sample-index"
+  },
+  "status": 400
+}
+```
+
+## New options
+
+### Error prevention validation
+
+Starting in OpenSearch 2.9, the create index API supports error prevention validation for the rollover action. When creating an index, you can specify the `index.plugins.index_state_management.rollover_skip` setting to control whether the index should be skipped during rollover operations:
+
+```json
+{
+  "settings": {
+    "index": {
+      "plugins": {
+        "index_state_management": {
+          "rollover_skip": true
+        }
+      }
+    }
+  }
+}
+```
+
+This setting helps prevent errors in index management workflows by allowing you to explicitly define which indices should be excluded from rollover actions.
+
+### Index context
+
+Starting in OpenSearch 2.11, you can define a context for the index using the `context` field in the request body:
+
+```json
+{
+  "context": {
+    "name": "context1",
+    "schema": {
+      "properties": {
+        "field1": {
+          "type": "keyword"
+        }
+      }
+    }
+  }
+}
+```
+
+The `context` field allows you to specify a named context and its schema, which can be used with the Index Context feature for more flexible index management and querying.
+
+For more information about index contexts, see [Index context]({{site.url}}{{site.baseurl}}/opensearch/index-context/).
