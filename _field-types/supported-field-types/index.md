@@ -8,6 +8,18 @@ redirect_from:
   - /opensearch/supported-field-types/
   - /opensearch/supported-field-types/index/
 ---
+```markdown
+---
+layout: default
+title: Supported field types
+nav_order: 80
+has_children: true
+has_toc: false
+redirect_from:
+  - /opensearch/supported-field-types/
+  - /opensearch/supported-field-types/index/
+
+---
 
 # Supported field types
 
@@ -31,6 +43,8 @@ k-NN vector | [`knn_vector`]({{site.url}}{{site.baseurl}}/field-types/supported-
 Percolator | [`percolator`]({{site.url}}{{site.baseurl}}/field-types/supported-field-types/percolator/): Specifies to treat this field as a query. 
 Derived | [`derived`]({{site.url}}{{site.baseurl}}/field-types/supported-field-types/derived/): Creates new fields dynamically by executing scripts on existing fields.
 Star-tree | [`star_tree`]({{site.url}}{{site.baseurl}}/field-types/supported-field-types/star-tree/): Precomputes aggregations and stores them in a [star-tree index](https://docs.pinot.apache.org/basics/indexing/star-tree-index), accelerating the performance of aggregation queries.
+[Warm]({{site.url}}{{site.baseurl}}/field-types/supported-field-types/warm/) | [`warm`]({{site.url}}{{site.baseurl}}/field-types/supported-field-types/warm/): Dedicated to hold warm indices.
+[Search]({{site.url}}{{site.baseurl}}/field-types/supported-field-types/search/) | [`search`]({{site.url}}{{site.baseurl}}/field-types/supported-field-types/search/): Dedicated to host search replicas.
 
 ## Arrays
 
@@ -190,3 +204,4 @@ The response contains documents 1 and 3 but not document 2 because only explicit
 
 The `_source` field still contains explicit `null` values because it is not affected by the `null_value`.
 {: .note}
+```
