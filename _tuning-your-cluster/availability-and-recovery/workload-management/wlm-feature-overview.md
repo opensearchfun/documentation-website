@@ -51,11 +51,11 @@ The following example request adds a query group named `analytics`:
 ```json
 PUT _wlm/query_group
 {
-  “name”: “analytics”,
-  “resiliency_mode”: “enforced”,
-  “resource_limits”: {
-    “cpu”: 0.4,
-    “memory”: 0.2
+  "name": "analytics",
+  "resiliency_mode": "enforced",
+  "resource_limits": {
+    "cpu": 0.4,
+    "memory": 0.2
   }
 }
 ```
@@ -130,42 +130,42 @@ GET _wlm/stats
 
 ```json
 {
-  “_nodes”: {
-    “total”: 1,
-    “successful”: 1,
-    “failed”: 0
+  "_nodes": {
+    "total": 1,
+    "successful": 1,
+    "failed": 0
   },
-  “cluster_name”: “XXXXXXYYYYYYYY”,
-  “A3L9EfBIQf2anrrUhh_goA”: {
-    “query_groups”: {
-      “16YGxFlPRdqIO7K4EACJlw”: {
-        “total_completions”: 33570,
-        “total_rejections”: 0,
-        “total_cancellations”: 0,
-        “cpu”: {
-          “current_usage”: 0.03319935314357281,
-          “cancellations”: 0,
-          “rejections”: 0
+  "cluster_name": "XXXXXXYYYYYYYY",
+  "A3L9EfBIQf2anrrUhh_goA": {
+    "query_groups": {
+      "16YGxFlPRdqIO7K4EACJlw": {
+        "total_completions": 33570,
+        "total_rejections": 0,
+        "total_cancellations": 0,
+        "cpu": {
+          "current_usage": 0.03319935314357281,
+          "cancellations": 0,
+          "rejections": 0
         },
-        “memory”: {
-          “current_usage”: 0.002306486276211217,
-          “cancellations”: 0,
-          “rejections”: 0
+        "memory": {
+          "current_usage": 0.002306486276211217,
+          "cancellations": 0,
+          "rejections": 0
         }
       },
-      “DEFAULT_QUERY_GROUP”: {
-        “total_completions”: 42572,
-        “total_rejections”: 0,
-        “total_cancellations”: 0,
-        “cpu”: {
-          “current_usage”: 0,
-          “cancellations”: 0,
-          “rejections”: 0
+      "DEFAULT_QUERY_GROUP": {
+        "total_completions": 42572,
+        "total_rejections": 0,
+        "total_cancellations": 0,
+        "cpu": {
+          "current_usage": 0,
+          "cancellations": 0,
+          "rejections": 0
         },
-        “memory”: {
-          “current_usage”: 0,
-          “cancellations”: 0,
-          “rejections”: 0
+        "memory": {
+          "current_usage": 0,
+          "cancellations": 0,
+          "rejections": 0
         }
       }
     }
@@ -192,3 +192,25 @@ GET _wlm/stats
 | `cancellations` | The number of cancellations resulting from the cancellation threshold being reached.   |
 | `rejections`    |  The number of rejections resulting from the cancellation threshold being reached.   |
 
+## Follow-up reroute task priority
+
+The priority of the follow-up reroute task when the current round times out can be adjusted using the `cluster.routing.allocation.balanced_shards_allocator.schedule_reroute.priority` setting. The default `NORMAL` priority is suitable for most clusters, but for clusters experiencing issues that are starving `NORMAL` priority tasks, it may be necessary to increase this priority to ensure proper shard allocation.
+
+Supported values for this setting are:
+
+- `NORMAL`
+- `HIGH`
+- `URGENT`
+
+To change the priority, use the following API call:
+
+```json
+PUT _cluster/settings
+{
+  "persistent": {
+    "cluster.routing.allocation.balanced_shards_allocator.schedule_reroute.priority": "HIGH"
+  }
+}
+```
+
+This setting allows administrators to fine-tune the system's response to allocation timeouts, ensuring that shard allocation can proceed even in challenging cluster conditions.
