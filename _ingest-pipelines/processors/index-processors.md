@@ -5,7 +5,7 @@ nav_order: 30
 has_children: true
 has_toc: false
 redirect_from:
-   - /api-reference/ingest-apis/ingest-processors/
+  - /api-reference/ingest-apis/ingest-processors/
 ---
 
 # Ingest processors
@@ -82,3 +82,83 @@ Some processors support batch ingestion---they can process multiple documents at
 ## Selectively enabling processors
 
 Processors defined by the [ingest-common module](https://github.com/opensearch-project/OpenSearch/blob/2.x/modules/ingest-common/src/main/java/org/opensearch/ingest/common/IngestCommonPlugin.java) can be selectively enabled by providing the `ingest-common.processors.allowed` cluster setting. If not provided, then all processors are enabled by default. Specifying an empty list disables all processors. If the setting is changed to remove previously enabled processors, then any pipeline using a disabled processor will fail after node restart when the new setting takes effect.
+
+## Dynamic error handling strategy
+
+Starting from version 2.12.0, OpenSearch introduces a dynamic error handling strategy for ingestion pipelines. This new feature allows for more flexible and customizable error handling during document processing.
+
+### Configuration
+
+The dynamic error handling strategy can be configured at the pipeline level using the `error_strategy` parameter. This parameter accepts the following values:
+
+- `DROP`: Drops the document if an error occurs during processing (default behavior).
+- `BLOCK`: Blocks the entire bulk request if an error occurs during processing of any document.
+
+Here's an example of how to configure the error strategy when creating a pipeline:
+
+```json
+PUT _ingest/pipeline/my-pipeline
+{
+  "description" : "A pipeline with custom error handling",
+  "error_strategy" : "BLOCK",
+  "processors" : [
+    {
+      "uppercase" : {
+        "field" : "my_field"
+      }
+    }
+  ]
+}
+```
+
+### Behavior
+
+- When `error_strategy` is set to `DROP` (default):
+  - If an error occurs while processing a document, that document is dropped.
+  - Other documents in the same bulk request are processed normally.
+  - The failed document and its error details are returned in the response.
+
+- When `error_strategy` is set to `BLOCK`:
+  - If an error occurs while processing any document, the entire bulk request is blocked.
+  - No documents from the bulk request are indexed.
+  - An error response is returned for the entire bulk request.
+
+### Error Handling at Processor Level
+
+In addition to the pipeline-level error strategy, you can still use the `on_failure` parameter at the processor level for more granular error handling. The `on_failure` configuration takes precedence over the pipeline-level `error_strategy`.
+
+Example:
+
+```json
+PUT _ingest/pipeline/my-pipeline
+{
+  "description" : "A pipeline with processor-level error handling",
+  "error_strategy" : "BLOCK",
+  "processors" : [
+    {
+      "uppercase" : {
+        "field" : "my_field",
+        "on_failure" : [
+          {
+            "set" : {
+              "field" : "error_message",
+              "value" : "Failed to convert field to uppercase"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}
+```
+
+In this example, if the `uppercase` processor fails, it will execute the `on_failure` actions instead of following the pipeline-level `BLOCK` strategy.
+
+### Considerations
+
+- The dynamic error handling strategy provides more flexibility in managing errors during document ingestion.
+- Choose the appropriate strategy based on your use case and requirements for data integrity and processing behavior.
+- Remember that processor-level `on_failure` configurations take precedence over the pipeline-level `error_strategy`.
+- When using the `BLOCK` strategy, be aware that it may impact the performance of bulk ingestion if errors occur frequently.
+
+This new feature enhances the robustness and flexibility of OpenSearch's ingestion pipelines, allowing for more nuanced error handling strategies tailored to specific use cases.
