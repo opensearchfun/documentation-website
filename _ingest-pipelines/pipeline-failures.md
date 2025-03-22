@@ -64,6 +64,48 @@ PUT _ingest/pipeline/my-pipeline/
 If the processor fails, OpenSearch logs the failure and continues to run all remaining processors in the search pipeline. To check whether there were any failures, you can use [ingest pipeline metrics]({{site.url}}{{site.baseurl}}/api-reference/ingest-apis/pipeline-failures/#ingest-pipeline-metrics).
 {: tip}
 
+## Dynamic error handling strategy
+
+OpenSearch now supports a dynamic error handling strategy for ingest pipelines. This feature allows you to configure how the pipeline should handle errors on a per-document basis, providing more flexibility and control over error handling.
+
+To use the dynamic error handling strategy, you can set the `error_strategy` parameter when ingesting documents. The available options are:
+
+- `DROP`: Drop the document if an error occurs during processing (default behavior).
+- `BLOCK`: Block the entire ingestion batch if an error occurs during processing.
+
+Here's an example of how to use the dynamic error handling strategy:
+
+```json
+POST _bulk
+{"index":{"_index":"test_index"}}
+{"field1":"value1", "pipeline.error_strategy":"DROP"}
+{"index":{"_index":"test_index"}}
+{"field1":"value2", "pipeline.error_strategy":"BLOCK"}
+```
+{% include copy-curl.html %}
+
+In this example, if an error occurs while processing the first document, it will be dropped. If an error occurs while processing the second document, the entire batch will be blocked.
+
+You can also set a default error strategy for a pipeline using the `default_error_strategy` parameter:
+
+```json
+PUT _ingest/pipeline/my-pipeline
+{
+  "description": "Pipeline with default error strategy",
+  "default_error_strategy": "BLOCK",
+  "processors": [
+    {
+      "uppercase": {
+        "field": "field1"
+      }
+    }
+  ]
+}
+```
+{% include copy-curl.html %}
+
+This sets the default error strategy for the pipeline to `BLOCK`. You can still override this on a per-document basis using the `pipeline.error_strategy` field as shown in the previous example.
+
 ## Ingest pipeline metrics
 
 To view ingest pipeline metrics, use the [Nodes Stats API]({{site.url}}{{site.baseurl}}/api-reference/nodes-apis/nodes-stats/):
