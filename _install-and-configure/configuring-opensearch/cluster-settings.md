@@ -167,3 +167,21 @@ OpenSearch supports the following cluster-level CAT API response limit settings,
 - `cat.shards.response.limit.number_of_shards` (Integer): Sets a limit on the number of shards returned by the [CAT Shards API]({{site.url}}{{site.baseurl}}/api-reference/cat/cat-shards/). The default value is `-1` (no limit). If the number of shards in the response exceeds this limit, the API returns a `429` error. To avoid this, you can specify an index pattern filter in your query (for example, `_cat/shards/<index-pattern>`).
 
 - `cat.segments.response.limit.number_of_indices` (Integer): Sets a limit on the number of indexes returned by the [CAT Segments API]({{site.url}}{{site.baseurl}}/api-reference/cat/cat-segments/). The default value is `-1` (no limit). If the number of indexes in the response exceeds this limit, the API returns a `429` error. To avoid this, you can specify an index pattern filter in your query (for example, `_cat/segments/<index-pattern>`).
+
+## Cluster-level node role settings
+
+The following settings control node roles in the cluster:
+
+- `node.roles` (Static, array): Specifies the roles that the node will fulfill in the cluster. Valid roles include `cluster_manager`, `data`, `ingest`, `ml`, `remote_cluster_client`, `search`, and `transform`. For example:
+
+  ```yaml
+  node.roles: [ data, ingest ]
+  ```
+
+  To run a dedicated search node, you would set:
+
+  ```yaml
+  node.roles: [ search ]
+  ```
+
+  A search node can only host search replicas and cannot host primary shards or ingest data. This allows for a clear separation between indexing and search workloads.
