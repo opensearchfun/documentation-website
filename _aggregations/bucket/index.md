@@ -10,7 +10,6 @@ redirect_from:
   - /query-dsl/aggregations/bucket/
   - /aggregations/bucket-agg/
 ---
-
 # Bucket aggregations
 
 Bucket aggregations categorize sets of documents as buckets. The type of bucket aggregation determines the bucket for a given document.
@@ -44,3 +43,4 @@ OpenSearch supports the following bucket aggregations:
 - [Significant terms]({{site.url}}{{site.baseurl}}/aggregations/bucket/significant-terms/)
 - [Significant text]({{site.url}}{{site.baseurl}}/aggregations/bucket/significant-text/)
 - [Terms]({{site.url}}{{site.baseurl}}/aggregations/bucket/terms/)
+- [Search]({{site.url}}{{site.baseurl}}/aggregations/bucket/search/)
