@@ -5,132 +5,56 @@ nav_order: 15
 redirect_from:
   - /api-reference/ingest-apis/pipeline-failures/
 ---
-
 # Handling pipeline failures
-**Introduced 1.0**
-{: .label .label-purple }
 
-Each ingest pipeline consists of a series of processors that are applied to the documents in sequence. If a processor fails, the entire pipeline will fail. You have two options for handling failures:
+OpenSearch provides two strategies for handling errors encountered during ingestion pipeline processing:
 
-- **Fail the entire pipeline:** If a processor fails, the entire pipeline will fail and the document will not be indexed.
-- **Fail the current processor and continue with the next processor:** This can be useful if you want to continue processing the document even if one of the processors fails.
-
-By default, an ingest pipeline stops if one of its processors fails. If you want the pipeline to continue running when a processor fails, you can set the `ignore_failure` parameter for that processor to `true` when creating the pipeline:
-
-```json
-PUT _ingest/pipeline/my-pipeline/
-{
-  "description": "Rename 'provider' field to 'cloud.provider'",
-  "processors": [
-    {
-      "rename": {
-        "field": "provider",
-        "target_field": "cloud.provider",
-        "ignore_failure": true
-      }
-    }
-  ]
-}
-```
-{% include copy-curl.html %}
-
-You can specify the `on_failure` parameter to run immediately after a processor fails. If you have specified `on_failure`, OpenSearch will run the other processors in the pipeline even if the `on_failure` configuration is empty: 
-
-```json
-PUT _ingest/pipeline/my-pipeline/
-{
-  "description": "Add timestamp to the document",
-  "processors": [
-    {
-      "date": {
-        "field": "timestamp_field",
-        "formats": ["yyyy-MM-dd HH:mm:ss"],
-        "target_field": "@timestamp",
-        "on_failure": [
-          {
-            "set": {
-              "field": "ingest_error",
-              "value": "failed"
-            }
-          }
-        ]
-      }
-    }
-  ]
-}
-```
-{% include copy-curl.html %}
-
-If the processor fails, OpenSearch logs the failure and continues to run all remaining processors in the search pipeline. To check whether there were any failures, you can use [ingest pipeline metrics]({{site.url}}{{site.baseurl}}/api-reference/ingest-apis/pipeline-failures/#ingest-pipeline-metrics).
-{: tip}
+- **Drop**: Drops the document and continues processing subsequent documents (default behavior)
+- **Block**: Stops processing the current batch of documents when an error is encountered
 
 ## Ingest pipeline metrics
 
-To view ingest pipeline metrics, use the [Nodes Stats API]({{site.url}}{{site.baseurl}}/api-reference/nodes-apis/nodes-stats/):
+OpenSearch tracks metrics for ingest pipelines to help monitor their performance and error rates. Some key metrics include:
+
+- Number of documents processed 
+- Number of documents failed
+- Processing time
+- Failure rate
+
+You can view these metrics using the [Nodes Stats API]({{site.url}}{{site.baseurl}}/api-reference/nodes-apis/nodes-stats/).
+
+## Dynamic error handling strategy
+
+Starting in OpenSearch 2.9, you can configure a dynamic error handling strategy for ingestion sources. This allows you to specify whether to drop or block processing when errors occur during either the polling or processing stages.
+
+To configure the error handling strategy, use the `error_strategy` parameter when creating an ingestion source:
 
 ```json
-GET /_nodes/stats/ingest?filter_path=nodes.*.ingest
+{
+  "error_strategy": "BLOCK"
+}
 ```
-{% include copy-curl.html %}
 
-The response contains statistics for all ingest pipelines, for example:
+Valid values are:
+
+- `DROP` - Continue processing and drop documents that encounter errors (default)
+- `BLOCK` - Stop processing the current batch when an error is encountered
+
+You can configure different strategies for the polling and processing stages:
 
 ```json
- {
-  "nodes": {
-    "iFPgpdjPQ-uzTdyPLwQVnQ": {
-      "ingest": {
-        "total": {
-          "count": 28,
-          "time_in_millis": 82,
-          "current": 0,
-          "failed": 9
-        },
-        "pipelines": {
-          "user-behavior": {
-            "count": 5,
-            "time_in_millis": 0,
-            "current": 0,
-            "failed": 0,
-            "processors": [
-              {
-                "append": {
-                  "type": "append",
-                  "stats": {
-                    "count": 5,
-                    "time_in_millis": 0,
-                    "current": 0,
-                    "failed": 0
-                  }
-                }
-              }
-            ]
-          },
-           "remove_ip": {
-            "count": 5,
-            "time_in_millis": 9,
-            "current": 0,
-            "failed": 2,
-            "processors": [
-              {
-                "remove": {
-                  "type": "remove",
-                  "stats": {
-                    "count": 5,
-                    "time_in_millis": 8,
-                    "current": 0,
-                    "failed": 2
-                  }
-                }
-              }
-            ]
-          }
-        }
-      }
-    }
+{
+  "error_strategy": {
+    "polling": "BLOCK",
+    "processing": "DROP"
   }
 }
 ```
 
-**Troubleshooting ingest pipeline failures:** The first thing you should do is check the logs to see whether there are any errors or warnings that can help you identify the cause of the failure. OpenSearch logs contain information about the ingest pipeline that failed, including the processor that failed and the reason for the failure.
-{: .tip}
+The error handling strategy can be updated dynamically without restarting the ingestion source.
+
+When using the `BLOCK` strategy, OpenSearch will stop processing the current batch of documents if an error occurs. You can then investigate the error, address any issues, and resume processing.
+
+The `DROP` strategy allows processing to continue by skipping problematic documents, which can be useful for maintaining ingestion throughput when occasional errors are expected and acceptable.
+
+Choose the appropriate strategy based on your data quality requirements and operational needs. Use metrics and monitoring to track error rates and adjust the strategy as needed.
