@@ -6,8 +6,8 @@ nav_exclude: true
 has_toc: true
 permalink: /ingest-pipelines/
 redirect_from:
-   - /api-reference/ingest-apis/ingest-pipelines/
-   - /ingest-pipelines/index/
+  - /api-reference/ingest-apis/ingest-pipelines/
+  - /ingest-pipelines/index/
 ---
 
 # Ingest pipelines
@@ -51,6 +51,45 @@ Field | Required | Type | Description
 :--- | :--- | :--- | :---
 `processors` | Required | Array of processor objects | A component that performs a specific data processing task as the data is being ingested into OpenSearch.
 `description` | Optional | String | A description of the ingest pipeline. 
+
+## Kafka ingestion
+
+OpenSearch now supports ingesting data from Kafka topics using ingest pipelines. This allows you to easily stream data from Kafka into OpenSearch for indexing and analysis.
+
+To configure Kafka ingestion:
+
+1. Create an ingest pipeline that specifies Kafka as the source:
+
+```json
+PUT _ingest/pipeline/kafka-pipeline
+{
+  "description": "Ingest pipeline for Kafka data",
+  "processors": [
+    {
+      "kafka": {
+        "topic": "my-topic",
+        "bootstrap_servers": ["localhost:9092"],
+        "group_id": "my-consumer-group"
+      }
+    }
+  ]
+}
+```
+
+2. Apply the pipeline to an index:
+
+```json
+PUT my-index
+{
+  "settings": {
+    "index.default_pipeline": "kafka-pipeline"
+  }
+}
+```
+
+3. Start ingesting data by sending messages to the specified Kafka topic. The pipeline will consume messages and index them into OpenSearch.
+
+You can configure additional options like security settings, message format, etc. in the Kafka processor configuration. See the [Kafka processor documentation]({{site.url}}{{site.baseurl}}/ingest-pipelines/processors/kafka/) for more details.
 
 ## Next steps
 
