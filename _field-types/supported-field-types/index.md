@@ -190,26 +190,3 @@ The response contains documents 1 and 3 but not document 2 because only explicit
 
 The `_source` field still contains explicit `null` values because it is not affected by the `null_value`.
 {: .note}
-
-## Warm nodes
-
-OpenSearch now supports warm nodes, which are dedicated to holding warm indices. The `WARM_ROLE` can be assigned to nodes to indicate they should be used for warm data storage.
-
-To use warm nodes:
-
-1. Assign the `WARM_ROLE` to the desired nodes in your cluster configuration.
-
-2. When creating or updating an index, specify the `index.routing.allocation.require.box_type` setting to `warm` to route it to warm nodes:
-
-```json
-PUT warm_index
-{
-  "settings": {
-    "index.routing.allocation.require.box_type": "warm"
-  }
-}
-```
-
-This will ensure the index is allocated only to nodes with the warm role.
-
-Warm nodes allow you to implement tiered storage, moving less frequently accessed data to more cost-effective storage while keeping hot data on high-performance nodes.
